@@ -58,7 +58,7 @@ namespace TaskManager.Server
                 WriteMessageToLog(GetStatsByJobs(true,true));
                 foreach (var pair in _controlledProcesses)
                 {
-                    if (_limitsHelper.CheckAll(pair.Key.ProcInfo))
+                    if (pair.Key.ProcInfo!=null && _limitsHelper.CheckAll(pair.Key.ProcInfo))
                     {
                         pair.Key.CancelJob();
                         _controlledProcesses.TryRemove(new KeyValuePair<Job, Thread>(pair.Key, _controlledProcesses[pair.Key]));
@@ -81,6 +81,7 @@ namespace TaskManager.Server
                 foreach (var pair in _controlledProcesses)
                 {
                     procInfo = pair.Key.ProcInfo;
+                    if(procInfo is null) continue;
                     stringBuilder.AppendLine(
                         $"\tJobID: {pair.Key.JobId}{sb}ID Процесса:{procInfo.ProcessID}{sb}Время исполнения: {procInfo.AbsoluteTime / 1000} с.{sb}Процессорное время: {procInfo.ProcessorTime} мс.{sb}ОЗУ: {procInfo.Memory}");
                 }

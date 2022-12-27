@@ -16,21 +16,17 @@ public class Job
     {
         JobId = Guid.NewGuid().ToString();
         ProgPath = progPath;
-        ProcInfo = new JobInfo();
-        try
-        {
-            _process = Process.Start(new ProcessStartInfo { FileName = ProgPath, UseShellExecute = false });
-            if (_process == null) throw new Exception("Произошла ошибка при запуске задачи");
-            ProcInfo.ProcessID = _process.Id;
-            IsAlive = true;
-            UpdateInfo();
-        }
-        catch {}
     }
     public void StartJob()
     {
         try
         {
+            _process = Process.Start(new ProcessStartInfo { FileName = ProgPath, UseShellExecute = false });
+            if (_process == null) throw new Exception("Произошла ошибка при запуске задачи");
+            ProcInfo = new JobInfo();
+            ProcInfo.ProcessID = _process.Id;
+            UpdateInfo();
+            IsAlive = true;
             while (!_process.HasExited && IsAlive)
             {
                 UpdateInfo();
@@ -38,9 +34,8 @@ public class Job
             _process.Kill();
             Terminate(this);
         }
-        catch (Exception e)
+        catch
         {
-            Console.WriteLine("Произошла ошибка при запуске задачи");
         }
     }
 
