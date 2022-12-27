@@ -7,7 +7,7 @@ public class Limits
     public int AbsoluteTimeLimit { get; set; }
     public Limits()
     {
-        MemoryLimit = 60156416;    // значения по умолчанию
+        MemoryLimit = 1000000000;    // значения по умолчанию
         ProcessorTimeLimit = (int)Math.Pow(10, 4);
         AbsoluteTimeLimit = (int)Math.Pow(10, 4);
     }

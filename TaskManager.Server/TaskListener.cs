@@ -46,18 +46,26 @@ public class TaskListener : IDisposable
     private void AddProcToController(string progPath)
     {
         var maxJobPerContr = _props.MaxJobs / _props.MaxControllers;
-        var job = new Job(progPath);
-        var freeController =
-            _jobControllers.FirstOrDefault(c =>
-                    c.Key.ProcsInPool == _jobControllers.Min(e => e.Key.ProcsInPool) &&
-                    c.Key.ProcsInPool != maxJobPerContr)
-                .Key;
-        if (freeController is null)
+        try
         {
-            _jobsQueue.Enqueue(job);
-            return;
+            var job = new Job(progPath);
+            var freeController =
+                _jobControllers.FirstOrDefault(c =>
+                        c.Key.ProcsInPool == _jobControllers.Min(e => e.Key.ProcsInPool) &&
+                        c.Key.ProcsInPool != maxJobPerContr)
+                    .Key;
+            if (freeController is null)
+            {
+                _jobsQueue.Enqueue(job);
+                return;
+            }
+
+            freeController.AddProcess(job);
         }
-        freeController.AddProcess(job);
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
     }
 
     private void ControllersListener()
@@ -66,11 +74,17 @@ public class TaskListener : IDisposable
         {
             foreach (var controller in _jobControllers)
             {
-                Console.WriteLine($"ControllerID: {controller.Key.JobControllerId}");
-                controller.Key.GetStatsByJobs();
+                var info = controller.Key.GetStatsByJobs(false);
+                if (info != String.Empty)
+                {
+                    Console.WriteLine(info);
+                }
             }
             Thread.Sleep(2000);
             Console.Clear();
+            // вообще по хорошему надо было разделить приложение на слушателя сокета и слушателя контроллеров
+            // и сделать так чтобы они писали в разные окна, тогда была бы возможность поглядывать в окно
+            // сокета и туда тоже что то выводить
         }
     }
 
@@ -99,6 +113,8 @@ public class TaskListener : IDisposable
         Console.ForegroundColor = ConsoleColor.Green;
         Console.WriteLine($"Прослушиватель запущен успешно. Ожидаем подключения");
         Console.ResetColor();
+        if (!File.Exists("ControllerLogs.log"))
+            File.Create("ControllerLogs.log");
         try
         {
             var mainControllerThread = new Thread(ControllersListener);

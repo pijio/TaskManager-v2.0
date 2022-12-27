@@ -21,17 +21,15 @@ public class LimitsHelper
     public bool CheckLimit(JobInfo proc, LimitType type)
         => LimitTypeToExpressionMap[type](proc, Limits);
 
-    public bool CheckAll(JobInfo proc, out List<LimitType> exceedBy)
+    public bool CheckAll(JobInfo proc)
     {
-        exceedBy = new List<LimitType>();
         foreach (var lim in Types)
         {
             if (LimitTypeToExpressionMap[lim](proc, Limits))
-            {
-                exceedBy.Add(lim);
-            }
+                return true;
         }
-        return exceedBy.Count != 0;
+
+        return false;
     }
     private static void FillMap(ConcurrentDictionary<LimitType, Func<JobInfo, Limits, bool>> map)
     {
