@@ -59,6 +59,29 @@ public class TaskListener : IDisposable
         }
         freeController.AddProcess(job);
     }
+
+    private void ControllersListener()
+    {
+        while (true)
+        {
+            foreach (var controller in _jobControllers)
+            {
+                Console.WriteLine($"ControllerID: {controller.Key.JobControllerId}");
+                controller.Key.GetStatsByJobs();
+            }
+            Thread.Sleep(2000);
+            Console.Clear();
+        }
+    }
+
+    private void FreeSlotHanlder(JobController controller)
+    {
+        Job job;
+        if (_jobsQueue.TryDequeue(out job))
+        {
+            controller.AddProcess(job);
+        }
+    }
     public void StartManager()
     {
         var port = _props.Port;
@@ -67,15 +90,19 @@ public class TaskListener : IDisposable
         for (int i = 0; i < _props.MaxControllers; i++)
         {
             var controller = new JobController(_props.MaxJobs/_props.MaxControllers, _limits);
+            controller.OnFreeSlot += FreeSlotHanlder;
             var thread = new Thread(controller.StartController);
             _jobControllers.TryAdd(controller, thread);
             thread.Start();
         }
+        
         Console.ForegroundColor = ConsoleColor.Green;
         Console.WriteLine($"Прослушиватель запущен успешно. Ожидаем подключения");
         Console.ResetColor();
         try
         {
+            var mainControllerThread = new Thread(ControllersListener);
+            mainControllerThread.Start();
             while (true)
             {
                 var client = _serverSocket.Accept();

@@ -11,6 +11,8 @@ namespace TaskManager.Server
         public bool IsAlive { get; set; } 
         public int MaxProcsInPool { get; private set; }
         private LimitsHelper _limitsHelper;
+        public delegate void FreeSlot(JobController jobController);
+        public event FreeSlot OnFreeSlot;
         public JobController(int maxJobs, Limits limits)
         {
             JobControllerId = Guid.NewGuid().ToString();
@@ -43,6 +45,28 @@ namespace TaskManager.Server
             }
         }
 
+        private void CheckSlots()
+        {
+            if (ProcsInPool == MaxProcsInPool - 1)
+            {
+                OnFreeSlot(this);
+            }
+        }
+        public void GetStatsByJobs()
+        {
+            JobInfo procInfo;
+            var sb = new string(' ', 5);
+            foreach (var pair in _controlledProcesses)
+            {
+                procInfo = pair.Key.ProcInfo;
+                Console.WriteLine(
+                    $"\tJobID: {pair.Key.JobId}{sb}ID Процесса:{procInfo.ProcessID}{sb}Время исполнения: {procInfo.AbsoluteTime / 1000}{sb}Процессорное время: {procInfo.ProcessorTime}{sb}ОЗУ: {procInfo.Memory}");
+            }
+            for (int i = 0; i < MaxProcsInPool - ProcsInPool; i++)
+            {
+                Console.WriteLine("\tПустой слот для процесса");
+            }
+        }
         private void TerminateJobHanlder(Job job)
         {
             _controlledProcesses.TryRemove(new KeyValuePair<Job, Thread>(job, _controlledProcesses[job]));

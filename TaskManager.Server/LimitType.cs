@@ -1,6 +1,6 @@
 ﻿namespace TaskManager.Server;
 
-public enum LimitType
+public enum LimitType : byte
 {
     MemoryLimit,
     ProcessorTimeLimit,
