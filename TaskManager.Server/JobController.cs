@@ -50,7 +50,9 @@ namespace TaskManager.Server
                 _mutex.ReleaseMutex();
             }
         }
-        
+        /// <summary>
+        /// Основной поток контроллера задач
+        /// </summary>
         public void StartController()
         {
             while (IsAlive)
@@ -61,7 +63,7 @@ namespace TaskManager.Server
                     if (pair.Key.ProcInfo!=null && _limitsHelper.CheckAll(pair.Key.ProcInfo))
                     {
                         pair.Key.CancelJob();
-                        _controlledProcesses.TryRemove(new KeyValuePair<Job, Thread>(pair.Key, _controlledProcesses[pair.Key]));
+                        pair.Value.Join();
                         OnFreeSlot(this);
                         Console.WriteLine($"Задача с ID процесса {pair.Key.ProcInfo.ProcessID} завершена по причине превышения лимитов используемых ресурсов");
                         WriteMessageToLog($"Задача с ID процесса {pair.Key.ProcInfo.ProcessID} завершена по причине превышения лимитов используемых ресурсов");
@@ -69,6 +71,12 @@ namespace TaskManager.Server
                 }
             }
         }
+        /// <summary>
+        /// статистика задач текущего контроллера в виде строки
+        /// </summary>
+        /// <param name="ignoreEmptyControllers">true если в случае пустого контроллера строка формировалась пустой</param>
+        /// <param name="ignoreEmptySlots">true если нужно включить строку "Пустой слот для процесса" если контроллер заполнен частично</param>
+        /// <returns>Строка содержащая информацию о каждой из задач</returns>
         public string GetStatsByJobs(bool ignoreEmptyControllers, bool ignoreEmptySlots=false)
         {
             if (!_controlledProcesses.IsEmpty || !ignoreEmptyControllers)
@@ -96,12 +104,17 @@ namespace TaskManager.Server
             }
             return String.Empty;
         }
-        private void TerminateJobHanlder(Job job)
+
+        /// <summary>
+        /// обработчик события завершения задачи (успешного/неуспешного)
+        /// </summary>
+        /// <param name="job"></param>
+        private void TerminateJobHanlder(Job job, bool succsesful)
         {
             _controlledProcesses.TryRemove(new KeyValuePair<Job, Thread>(job, _controlledProcesses[job]));
             OnFreeSlot(this);
-            Console.WriteLine($"Задача с ID Процесса {job.ProcInfo.ProcessID} завершена без ошибок");
-            WriteMessageToLog($"Задача с ID Процесса {job.ProcInfo.ProcessID} завершена без ошибок");
+            Console.WriteLine($"Задача с ID Процесса {job.ProcInfo.ProcessID} завершена {(succsesful ? "без ошибок":"с ошибками")}");
+            WriteMessageToLog($"Задача с ID Процесса {job.ProcInfo.ProcessID} завершена {(succsesful ? "без ошибок":"с ошибками")}");
         }
         #region GetHashCode && Equals
 

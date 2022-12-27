@@ -7,7 +7,7 @@ public class Job
 {
     private bool IsAlive;
     private Process _process;
-    public delegate void TerminateHandler(Job job);
+    public delegate void TerminateHandler(Job job, bool succsesful);
     public string JobId { get; set; }
     public string ProgPath { get; set; }
     public JobInfo ProcInfo { get; set; }
@@ -17,6 +17,10 @@ public class Job
         JobId = Guid.NewGuid().ToString();
         ProgPath = progPath;
     }
+    /// <summary>
+    /// поток выполнения задачи
+    /// </summary>
+    /// <exception cref="Exception"></exception>
     public void StartJob()
     {
         try
@@ -32,13 +36,15 @@ public class Job
                 UpdateInfo();
             }
             _process.Kill();
-            Terminate(this);
+            Terminate(this, IsAlive);
         }
         catch
         {
         }
     }
-
+    /// <summary>
+    /// Обновление стейта процесса
+    /// </summary>
     private void UpdateInfo()
     {
         _process.Refresh();
@@ -46,6 +52,9 @@ public class Job
         ProcInfo.AbsoluteTime = (int)(DateTime.Now - _process.StartTime).TotalMilliseconds;
         ProcInfo.ProcessorTime = (int)_process.TotalProcessorTime.TotalMilliseconds;
     }
+    /// <summary>
+    /// Отмена задачи извне
+    /// </summary>
     public void CancelJob() => IsAlive = false;
     
     #region GetHashCode && Equals

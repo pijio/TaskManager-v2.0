@@ -1,7 +1,9 @@
 ﻿using System.Xml.Serialization;
 
 namespace TaskManager.Server;
-
+/// <summary>
+/// Различные хелперы (в данном случае тут только миграции и чтение конфигов)
+/// </summary>
 public static class Helpers
 {
     public static void PropsMigration<T>(T props, String path)

@@ -42,7 +42,10 @@ public class TaskListener : IDisposable
         client.Receive(data);
         return (ClientMessageTypes)data[0];
     }
-
+    /// <summary>
+    /// Добавление задачи в контроллеры
+    /// </summary>
+    /// <param name="progPath"></param>
     private void AddProcToController(string progPath)
     {
         var maxJobPerContr = _props.MaxJobs / _props.MaxControllers;
@@ -53,8 +56,8 @@ public class TaskListener : IDisposable
                 _jobControllers.FirstOrDefault(c =>
                         c.Key.ProcsInPool == _jobControllers.Min(e => e.Key.ProcsInPool) &&
                         c.Key.ProcsInPool != maxJobPerContr)
-                    .Key;
-            if (freeController is null)
+                    .Key; // ищем минимально заполненный контроллер
+            if (freeController is null) // если все контроллеры заняты добавляем задачу в очередь
             {
                 _jobsQueue.Enqueue(job);
                 return;
@@ -67,7 +70,9 @@ public class TaskListener : IDisposable
             Console.WriteLine(e.Message);
         }
     }
-
+    /// <summary>
+    /// Метод, который прослушивает все контроллеры задач
+    /// </summary>
     private void ControllersListener()
     {
         while (true)
@@ -87,7 +92,10 @@ public class TaskListener : IDisposable
             // сокета и туда тоже что то выводить
         }
     }
-
+    /// <summary>
+    /// Обработчик события освобождения свободного места в контроллере для последующего извлечения из очереди задач
+    /// </summary>
+    /// <param name="controller"></param>
     private void FreeSlotHanlder(JobController controller)
     {
         Job job;
@@ -96,6 +104,9 @@ public class TaskListener : IDisposable
             controller.AddProcess(job);
         }
     }
+    /// <summary>
+    /// Метод обслуживающий сокет
+    /// </summary>
     public void StartManager()
     {
         var port = _props.Port;

@@ -2,6 +2,7 @@
 
 namespace TaskManager.DTO
 {
+    //TODO callback в клиент (когда нибудь...)
     public enum ServerMessageTypes : byte
     {
         // сообщение о установленных лимитах для каждой задачи

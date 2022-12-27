@@ -20,7 +20,11 @@ public class LimitsHelper
 
     public bool CheckLimit(JobInfo proc, LimitType type)
         => LimitTypeToExpressionMap[type](proc, Limits);
-
+    /// <summary>
+    /// проверка каждого из лимитов на превышение
+    /// </summary>
+    /// <param name="proc">Стейт задачи</param>
+    /// <returns></returns>
     public bool CheckAll(JobInfo proc)
     {
         foreach (var lim in Types)
