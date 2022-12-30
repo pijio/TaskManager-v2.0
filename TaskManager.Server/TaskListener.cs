@@ -42,6 +42,31 @@ public class TaskListener : IDisposable
         client.Receive(data);
         return (ClientMessageTypes)data[0];
     }
+
+    /// <summary>
+    /// Поток для нажатия клавиш
+    /// </summary>
+    private int ManageKeys(int maxKey, int minKey)
+    {
+        ConsoleKey key;
+        int keyAsInt;
+        while (true)
+        {
+            key = Console.ReadKey().Key;
+            try
+            {
+                keyAsInt = Convert.ToInt32(key.ToString());
+                if (keyAsInt >= minKey || keyAsInt <= maxKey)
+                {
+                    return keyAsInt;
+                }
+            }
+            catch {
+                continue;
+            }
+        }
+    }
+
     /// <summary>
     /// Добавление задачи в контроллеры
     /// </summary>
@@ -85,7 +110,7 @@ public class TaskListener : IDisposable
                     Console.WriteLine(info);
                 }
             }
-            Thread.Sleep(2000);
+            Console.WriteLine($"Нажмите цифру от 1 до {_props.MaxControllers} чтобы выбрать один из контроллеров для манипулирования процессами");
             Console.Clear();
             // вообще по хорошему надо было разделить приложение на слушателя сокета и слушателя контроллеров
             // и сделать так чтобы они писали в разные окна, тогда была бы возможность поглядывать в окно
@@ -126,9 +151,9 @@ public class TaskListener : IDisposable
         Console.ResetColor();
         if (!File.Exists("ControllerLogs.log"))
             File.Create("ControllerLogs.log");
+        var mainControllerThread = new Thread(ControllersListener);
         try
         {
-            var mainControllerThread = new Thread(ControllersListener);
             mainControllerThread.Start();
             while (true)
             {
@@ -138,13 +163,18 @@ public class TaskListener : IDisposable
                     case ClientMessageTypes.JobContext:
                         string prog = GetProgPath(client);
                         AddProcToController(prog);
-                        break; 
+                        break;
                 }
             }
         }
+
         catch (Exception e)
         {
             Console.WriteLine(e);
+        }
+        finally
+        {
+            mainControllerThread.Abort();
         }
     }
 

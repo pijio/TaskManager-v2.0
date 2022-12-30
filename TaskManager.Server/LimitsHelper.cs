@@ -40,5 +40,6 @@ public class LimitsHelper
         map.TryAdd(LimitType.MemoryLimit, (proc, lims) => proc.Memory > lims.MemoryLimit);
         map.TryAdd(LimitType.AbsoluteTimelimit, (proc, lims) => proc.AbsoluteTime > lims.AbsoluteTimeLimit);
         map.TryAdd(LimitType.ProcessorTimeLimit, (proc, lims) => proc.ProcessorTime > lims.ProcessorTimeLimit);
+        map.TryAdd(LimitType.VirtualMemoryLimit, (proc, lims) => proc.VirtualMemory > lims.VirtualMemoryLimit);
     }
 }

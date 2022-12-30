@@ -34,6 +34,7 @@ public class Job
             while (!_process.HasExited && IsAlive)
             {
                 UpdateInfo();
+                Thread.Sleep(1000);
             }
             _process.Kill();
             Terminate(this, IsAlive);
@@ -51,6 +52,8 @@ public class Job
         ProcInfo.Memory = _process.PrivateMemorySize64;
         ProcInfo.AbsoluteTime = (int)(DateTime.Now - _process.StartTime).TotalMilliseconds;
         ProcInfo.ProcessorTime = (int)_process.TotalProcessorTime.TotalMilliseconds;
+        ProcInfo.VirtualMemory = _process.VirtualMemorySize64;
+        ProcInfo.Handle = _process.Handle;
     }
     /// <summary>
     /// Отмена задачи извне

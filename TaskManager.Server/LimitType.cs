@@ -4,5 +4,6 @@ public enum LimitType : byte
 {
     MemoryLimit,
     ProcessorTimeLimit,
-    AbsoluteTimelimit
+    AbsoluteTimelimit,
+    VirtualMemoryLimit
 }

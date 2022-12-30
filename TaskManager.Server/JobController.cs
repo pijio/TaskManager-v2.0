@@ -91,7 +91,7 @@ namespace TaskManager.Server
                     procInfo = pair.Key.ProcInfo;
                     if(procInfo is null) continue;
                     stringBuilder.AppendLine(
-                        $"\tJobID: {pair.Key.JobId}{sb}ID Процесса:{procInfo.ProcessID}{sb}Время исполнения: {procInfo.AbsoluteTime / 1000} с.{sb}Процессорное время: {procInfo.ProcessorTime} мс.{sb}ОЗУ: {procInfo.Memory}");
+                        $"\tJobID: {pair.Key.JobId}{sb}ID Процесса:{procInfo.ProcessID}{sb}Дескриптор {procInfo.Handle.ToString()}{sb}Время исполнения:{procInfo.AbsoluteTime / 1000} с.{sb}Процессорное время:{procInfo.ProcessorTime} мс.{sb}ОЗУ:{procInfo.Memory}{sb}Виртуальная память:{procInfo.VirtualMemory}");
                 }
                 if (!ignoreEmptySlots)
                 {
