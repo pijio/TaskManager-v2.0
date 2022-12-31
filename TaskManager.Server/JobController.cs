@@ -71,6 +71,45 @@ namespace TaskManager.Server
                 }
             }
         }
+
+        /// <summary>
+        /// Управление задачами (рестарт/остановка)
+        /// </summary>
+        public void ManageJobs()
+        {
+            while (true)
+            {
+                foreach (var job in _controlledProcesses.Keys)
+                {
+                    Console.WriteLine($"JobId: {job.JobId}");
+                }
+                Console.WriteLine("Введите строку в таком формате: ПорядковыйНомерЗадачи:kill\\restart");
+                try
+                {
+                    var input = Console.ReadLine().Split(':');
+                    var job = _controlledProcesses.Keys.ElementAt(Convert.ToInt32(input[0]));
+                    switch (input[1].ToLower())
+                    {
+                        case "kill":
+                            job.CancelJob(false);
+                            _controlledProcesses[job].Join();
+                            OnFreeSlot(this);
+                            break;
+                        case "restart":
+                            var prog = job.ProgPath;
+                            job.CancelJob(false);
+                            _controlledProcesses.TryRemove(
+                                new KeyValuePair<Job, Thread>(job, _controlledProcesses[job]));
+                            var newJob = new Job(prog);
+                            _controlledProcesses.TryAdd(newJob, new Thread(newJob.StartJob));
+                            _controlledProcesses[newJob].Start();
+                            break;
+                        default:
+                            throw new Exception();
+                    }
+                }catch { Console.WriteLine("Некорректный ввод!");}
+            }
+        }
         /// <summary>
         /// статистика задач текущего контроллера в виде строки
         /// </summary>

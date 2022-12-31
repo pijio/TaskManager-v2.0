@@ -10,8 +10,8 @@ public class Limits
     public Limits()
     {
         MemoryLimit = 1000000000;    // значения по умолчанию
-        VirtualMemoryLimit = 1000000000;    // значения по умолчанию
-        ProcessorTimeLimit = (int)Math.Pow(10, 4);
-        AbsoluteTimeLimit = (int)Math.Pow(10, 4);
+        VirtualMemoryLimit = 1000000000000;    // значения по умолчанию
+        ProcessorTimeLimit = (int)Math.Pow(10, 6);
+        AbsoluteTimeLimit = (int)Math.Pow(10, 6);
     }
 }

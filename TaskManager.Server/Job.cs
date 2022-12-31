@@ -7,6 +7,7 @@ public class Job
 {
     private bool IsAlive;
     private Process _process;
+    private bool OnError;
     public delegate void TerminateHandler(Job job, bool succsesful);
     public string JobId { get; set; }
     public string ProgPath { get; set; }
@@ -31,16 +32,16 @@ public class Job
             ProcInfo.ProcessID = _process.Id;
             UpdateInfo();
             IsAlive = true;
-            while (!_process.HasExited && IsAlive)
+            while (!_process.HasExited ^ !IsAlive)
             {
                 UpdateInfo();
-                Thread.Sleep(1000);
             }
             _process.Kill();
-            Terminate(this, IsAlive);
+            Terminate(this, OnError ? IsAlive : true);
         }
         catch
         {
+            Terminate(this, false);
         }
     }
     /// <summary>
@@ -58,7 +59,11 @@ public class Job
     /// <summary>
     /// Отмена задачи извне
     /// </summary>
-    public void CancelJob() => IsAlive = false;
+    public void CancelJob(bool onError = true)
+    {
+        IsAlive = false;
+        OnError = onError;
+    }
     
     #region GetHashCode && Equals
 

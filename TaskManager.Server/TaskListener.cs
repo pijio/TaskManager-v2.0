@@ -46,7 +46,7 @@ public class TaskListener : IDisposable
     /// <summary>
     /// Поток для нажатия клавиш
     /// </summary>
-    private int ManageKeys(int maxKey, int minKey)
+    private void ManageKeys(int minKey, int maxKey, out int keyNo)
     {
         ConsoleKey key;
         int keyAsInt;
@@ -55,14 +55,16 @@ public class TaskListener : IDisposable
             key = Console.ReadKey().Key;
             try
             {
-                keyAsInt = Convert.ToInt32(key.ToString());
-                if (keyAsInt >= minKey || keyAsInt <= maxKey)
+                keyAsInt = Convert.ToInt32(key.ToString()[1]) - 48;
+                if (keyAsInt >= minKey && keyAsInt <= maxKey)
                 {
-                    return keyAsInt;
+                    keyNo = keyAsInt;
+                    return;
                 }
             }
-            catch {
-                continue;
+            catch
+            {
+                // ignored
             }
         }
     }
@@ -95,11 +97,16 @@ public class TaskListener : IDisposable
             Console.WriteLine(e.Message);
         }
     }
+    
+    
     /// <summary>
     /// Метод, который прослушивает все контроллеры задач
     /// </summary>
     private void ControllersListener()
     {
+        int pressed = -1;
+        var keyManageThread = new Thread(() => ManageKeys(1, _props.MaxControllers, out pressed));
+        keyManageThread.Start();
         while (true)
         {
             foreach (var controller in _jobControllers)
@@ -111,7 +118,26 @@ public class TaskListener : IDisposable
                 }
             }
             Console.WriteLine($"Нажмите цифру от 1 до {_props.MaxControllers} чтобы выбрать один из контроллеров для манипулирования процессами");
+            Thread.Sleep(1000);
             Console.Clear();
+            if (pressed != -1)
+            {
+                Console.Clear();
+                var controller = _jobControllers.Keys.ElementAt(pressed);
+                keyManageThread = new Thread(() => ManageKeys(1, _props.MaxControllers, out pressed));
+                if (controller.ProcsInPool == 0)
+                {
+                    Console.WriteLine("Контроллер пуст...");
+                    Thread.Sleep(2000);
+                    pressed = -1;
+                    keyManageThread.Start();
+                    continue;
+                }
+                controller.ManageJobs();
+                Thread.Sleep(2000);
+                pressed = -1;
+                keyManageThread.Start();
+            }
             // вообще по хорошему надо было разделить приложение на слушателя сокета и слушателя контроллеров
             // и сделать так чтобы они писали в разные окна, тогда была бы возможность поглядывать в окно
             // сокета и туда тоже что то выводить
